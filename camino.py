@@ -1,78 +1,36 @@
-import queue
+import heapq
 
-class Vertice:
-    def __init__(self, id):
-        self.id = id
-        self.conexiones = {}
-        self.distancia = float('inf')
-        self.predecesor = None
+def dijkstra(graph, start):
+    # Inicialización de distancias y cola de prioridad
+    distances = {vertex: float('infinity') for vertex in graph}
+    distances[start] = 0
+    priority_queue = [(0, start)]
+    
+    while priority_queue:
+        current_distance, current_vertex = heapq.heappop(priority_queue)
+        
+        # Si se encuentra una distancia mayor, se ignora
+        if current_distance > distances[current_vertex]:
+            continue
+        
+        # Revisión de vecinos y actualización de distancias
+        for neighbor, weight in graph[current_vertex].items():
+            distance = current_distance + weight
+            
+            # Solo se consideran caminos más cortos
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                heapq.heappush(priority_queue, (distance, neighbor))
+    
+    return distances
 
-    def agregarVecino(self, vecino, ponderacion=0):
-        self.conexiones[vecino] = ponderacion
+# Ejemplo de uso
+graph = {
+    'A': {'B': 1, 'C': 4},
+    'B': {'A': 1, 'C': 2, 'D': 5},
+    'C': {'A': 4, 'B': 2, 'D': 1},
+    'D': {'B': 5, 'C': 1}
+}
 
-    def obtenerConexiones(self):
-        return self.conexiones.keys()
-
-    def obtenerId(self):
-        return self.id
-
-    def obtenerPonderacion(self, vecino):
-        return self.conexiones[vecino]
-
-    def asignarDistancia(self, dist):
-        self.distancia = dist
-
-    def obtenerDistancia(self):
-        return self.distancia
-
-    def asignarPredecesor(self, pred):
-        self.predecesor = pred
-
-class Grafo:
-    def __init__(self):
-        self.vertices = {}
-
-    def agregarVertice(self, id):
-        vertice = Vertice(id)
-        self.vertices[id] = vertice
-        return vertice
-
-    def agregarArista(self, de, a, costo=0):
-        if de not in self.vertices:
-            self.agregarVertice(de)
-        if a not in self.vertices:
-            self.agregarVertice(a)
-        self.vertices[de].agregarVecino(self.vertices[a], costo)
-
-    def __iter__(self):
-        return iter(self.vertices.values())
-
-def dijkstra(grafo, inicio):
-    inicio.asignarDistancia(0)
-    cola_prioridad = queue.PriorityQueue()
-    cola_prioridad.put((inicio.obtenerDistancia(), inicio))
-
-    while not cola_prioridad.empty():
-        distancia_actual, vertice_actual = cola_prioridad.get()
-
-        for vecino in vertice_actual.obtenerConexiones():
-            nueva_distancia = distancia_actual + vertice_actual.obtenerPonderacion(vecino)
-
-            if nueva_distancia < vecino.obtenerDistancia():
-                vecino.asignarDistancia(nueva_distancia)
-                vecino.asignarPredecesor(vertice_actual)
-                cola_prioridad.put((nueva_distancia, vecino))
-
-# Ejemplo de uso:
-grafo = Grafo()
-grafo.agregarArista('A', 'B', 1)
-grafo.agregarArista('A', 'C', 4)
-grafo.agregarArista('B', 'C', 2)
-grafo.agregarArista('B', 'D', 5)
-grafo.agregarArista('C', 'D', 1)
-
-dijkstra(grafo, grafo.vertices['A'])
-
-# Mostrar la distancia mínima desde 'A' a cada vértice
-for vertice in grafo:
-    print(f"Distancia desde A a {vertice.obtenerId()} es {vertice.obtenerDistancia()}")
+start_vertex = 'A'
+print(dijkstra(graph, start_vertex))
